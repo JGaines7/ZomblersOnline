@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Game</title>
+
+    <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+    <div id="gameAreaWrapper" style="display:none;">
+        <canvas tabindex="1" id="cvs"></canvas>
+    </div>
+    <div id="startMenuWrapper">
+        <div id="startMenu">
+            <p>Your Online Game</p>
+            <input type="text" tabindex="0" autofocus placeholder="Enter your name here" id="playerNameInput" />
+            <b class="input-error">Nick name must be alphanumeric characters only!</b>
+            <br />
+            <button id="startButton">Play</button>
+        </div>
+    </div>
+    <!-- TODO bundle these scripts (Browserify? Webpack?) -->
+
+    <!-- External libraries -->
+    <script src="./js/lib/Vector2D.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Constants -->
+    <script src="./js/Globals.js"></script>
+
+    <!-- Our code -->
+    <script src="./js/GenericGameObject.js"></script>
+    <script src="./js/Player.js"></script>
+    <script src="./js/Zombie.js"></script>
+    
+    <script src="./js/GameWorld.js"></script>
+    <script src="./js/InputsCanvas.js"></script>
+    
+    <script src="./js/Renderer.js"></script>
+    
+    <script src="./js/Game.js"></script>
+    <script src="./js/App.js"></script>
+    
+    
+   
+</body>
+</html>
