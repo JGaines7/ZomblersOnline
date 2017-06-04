@@ -8,7 +8,6 @@ var screenHeight = window.innerHeight;
 
 //performance debugging widget
 var stats = new Stats();
-stats.showPanel( 0 );
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
@@ -16,10 +15,10 @@ document.body.appendChild( stats.dom );
 var c = document.getElementById('cvs');
 var canvas = c.getContext('2d');
 c.width = screenWidth; c.height = screenHeight;
-
-var KEY_ENTER = 13;
-
 var game;
+
+
+
 
 
 function startGame() {
@@ -36,7 +35,7 @@ function startGame() {
 // check if nick is valid alphanumeric characters (and underscores)
 function validNick() {
     var regex = /^\w*$/;
-    console.log('Regex Test', regex.exec(playerNameInput.value));
+    //console.log('Regex Test', regex.exec(playerNameInput.value));
     return regex.exec(playerNameInput.value) !== null;
 }
 
@@ -59,7 +58,7 @@ window.onload = function() {
     playerNameInput.addEventListener('keypress', function (e) {
         var key = e.which || e.keyCode;
 
-        if (key === KEY_ENTER) {
+        if (key === globalVals.KEY_ENTER) {
             if (validNick()) {
                 startGame();
             } else {
@@ -102,4 +101,5 @@ window.addEventListener('resize', function() {
     screenHeight = window.innerHeight;
     c.width = screenWidth;
     c.height = screenHeight;
+    game.handleScreenResize(screenWidth, screenHeight);
 }, true);

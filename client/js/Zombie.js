@@ -1,3 +1,4 @@
+"use strict"
 function Zombie(position, velocity, kills)
 {
 	"use strict"

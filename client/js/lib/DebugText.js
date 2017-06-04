@@ -1,7 +1,8 @@
-
 "use strict"
 var debugValues = {}
 
+
+//Add or update a key value pair to the debug list.
 function debugLog(key, value)
 {
 
@@ -9,7 +10,7 @@ function debugLog(key, value)
 
 
 }
-
+//Draw all debug values to the screen
 function drawDebugValues(canvas)
 {
 	var yval = 100;

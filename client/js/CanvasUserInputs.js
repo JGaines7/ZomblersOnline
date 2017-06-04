@@ -1,63 +1,61 @@
 //This class listens for inputs on the canvas element
 //This class should set flags to be used by the gameloop
-
-function InputsCanvas()
+"use strict"
+function CanvasUserInputs()
 {
-	"use strict"
-	this.canvas = document.getElementById('cvs');
-	console.log(this.canvas.width + " : " + this.canvas.height)
+
+	canvas = document.getElementById('cvs');
     //this.canvas.addEventListener('mousemove', this.gameInput, false);
     //this.canvas.addEventListener('mouseout', this.outOfBounds, false);
 
-    this.directionalKeysState = { 
+    var directionalKeysState = { 
         north: false,
         east: false,
         south: false,
         west: false,
     }
 
-    var selfs = this;
 
-    this.canvas.addEventListener('keydown', function(event)
+    canvas.addEventListener('keydown', function(event)
     {
 
         if (globalVals.KEY_LEFT == event.keyCode)
         {
-            selfs.directionalKeysState.west = true;
+            directionalKeysState.west = true;
         }
         else if (globalVals.KEY_UP == event.keyCode)
         {
-            selfs.directionalKeysState.north = true;
+            directionalKeysState.north = true;
         } 
         else if (globalVals.KEY_RIGHT == event.keyCode)
         {
-            selfs.directionalKeysState.east = true;
+            directionalKeysState.east = true;
         }
         else if (globalVals.KEY_DOWN == event.keyCode)
         {
-            selfs.directionalKeysState.south = true;
+            directionalKeysState.south = true;
         }
 
         
     }, false);
-    this.canvas.addEventListener('keyup', function(event)
+    canvas.addEventListener('keyup', function(event)
     {
 
         if (globalVals.KEY_LEFT == event.keyCode)
         {
-            selfs.directionalKeysState.west = false;
+            directionalKeysState.west = false;
         }
         else if (globalVals.KEY_UP == event.keyCode)
         {
-            selfs.directionalKeysState.north = false;
+            directionalKeysState.north = false;
         } 
         else if (globalVals.KEY_RIGHT == event.keyCode)
         {
-            selfs.directionalKeysState.east = false;
+            directionalKeysState.east = false;
         }
         else if (globalVals.KEY_DOWN == event.keyCode)
         {
-            selfs.directionalKeysState.south = false;
+            directionalKeysState.south = false;
         }
 
         
@@ -66,19 +64,19 @@ function InputsCanvas()
     this.getMovementDirection = function()
     {
         var retVal = new Vector(0,0);
-        if (this.directionalKeysState.north == true)
+        if (directionalKeysState.north == true)
         {
             retVal.add(globalVals.DIR_NORTH);
         }
-        if (this.directionalKeysState.east == true)
+        if (directionalKeysState.east == true)
         {
             retVal.add(globalVals.DIR_EAST);
         }
-        if (this.directionalKeysState.south == true)
+        if (directionalKeysState.south == true)
         {
             retVal.add(globalVals.DIR_SOUTH);
         }
-        if (this.directionalKeysState.west == true)
+        if (directionalKeysState.west == true)
         {
             retVal.add(globalVals.DIR_WEST);
         }

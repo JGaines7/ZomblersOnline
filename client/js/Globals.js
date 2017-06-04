@@ -14,4 +14,7 @@ globalVals = {
     DIR_EAST: new Vector(1,0),
     DIR_SOUTH: new Vector(0,1),
     DIR_WEST: new Vector(-1,0),
+
+    ZOMBIE_RADIUS: 15,
+    PLAYER_RADIUS: 20
 };

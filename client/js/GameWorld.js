@@ -1,3 +1,4 @@
+	"use strict"
 //Gameworld holds the state of all elements in the world. (Players, map, ammo, projectiles, scores)
 //Gameworld should have a full set of interfaces to be updated (and read?) 
 //There should be 0 networking code in here
@@ -9,7 +10,7 @@
 
 
 function GameWorld(width, height) {
-	"use strict"
+
 	//TODO Could we pass in a GameWorldConfig on construction?
 	this.worldWidth = width;
 	this.worldHeight = height;

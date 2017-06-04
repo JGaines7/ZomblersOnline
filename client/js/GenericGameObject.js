@@ -1,3 +1,4 @@
+"use strict"
 //generic game object has basic properties and functions for any element in the game.
 
 function GenericGameObject(position, velocity)

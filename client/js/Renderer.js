@@ -1,75 +1,82 @@
+"use strict"
 //This class takes information from the GameWorld and renders them.
 
 
 function Renderer(canvas)
 {
 	//The canvas element to draw to.
-	this._canvas = canvas;
+	var _canvas = canvas;
 	//The viewport to draw to.
-	this.currentViewport = undefined;
+	var _currentViewport = undefined;
+
+	this.setViewport = function(viewPort) { _currentViewport = viewPort;}
 	//TODO eventually we could have multiple layered canvases for different elements (Game, minimap, UI)
 
 	this.render = function(gameWorldObject)
 	{
-		this.drawBackground();
-		this.drawPlayers(gameWorldObject.players);
-		this.drawZombies(gameWorldObject.zombies);
-		this.drawBorder(gameWorldObject.worldWidth, gameWorldObject.worldHeight);
+		drawBackground();
+		drawPlayers(gameWorldObject.players);
+		drawZombies(gameWorldObject.zombies);
+		drawBorder(gameWorldObject.worldWidth, gameWorldObject.worldHeight);
 		drawDebugValues(canvas);
 	}
 
 	//internal functions
-	this.drawBackground = function()
+
+
+	function drawBackground()
 	{
-		this._canvas.fillStyle = '#FFFFFF';
-		this._canvas.fillRect(0, 0, screenWidth, screenHeight);
+		_canvas.fillStyle = '#FFFFFF';
+		_canvas.fillRect(0, 0, screenWidth, screenHeight);
 	}
 
-	this.drawZombies = function(zombies)
+	function drawZombies(zombies)
 	{
 		var zombieColor = '#FF0000';
 
 		var adjustedPosition;
-		for(i = 0; i < zombies.length; i++)
+		for(var i = 0; i < zombies.length; i++)
 		{
-			adjustedPosition = this.currentViewport.getViewOffsetFromVec(zombies[i].position);
-			drawCircle(this._canvas, adjustedPosition.x, adjustedPosition.y, 15, 5, zombieColor);
+			adjustedPosition = _currentViewport.getViewOffsetFromVec(zombies[i].position);
+			if(_currentViewport.isInView(zombies[i].position))
+			{
+				drawCircle(_canvas, adjustedPosition.x, adjustedPosition.y, globalVals.ZOMBIE_RADIUS, 5, zombieColor);
+			}
 		}
 	};
 
-	this.drawPlayers = function(players)
+	function drawPlayers(players)
 	{
 		var playerColor = '#00FF00';
 
-		this._canvas.font = "30px Arial";
+		_canvas.font = "30px Arial";
 
-		debugLog("Viewport X" , this.currentViewport.getPosition().x);
-		debugLog("Viewport Y" , this.currentViewport.getPosition().y);
+		debugLog("Viewport X" , _currentViewport.getPosition().x);
+		debugLog("Viewport Y" , _currentViewport.getPosition().y);
 
 		var adjustedPosition;
-		for(i = 0; i < players.length; i++)
+		for(var i = 0; i < players.length; i++)
 		{
-			adjustedPosition = this.currentViewport.getViewOffsetFromVec(players[i].position);
-			drawCircle(this._canvas, adjustedPosition.x, adjustedPosition.y, 15, 8, playerColor);
+			adjustedPosition = _currentViewport.getViewOffsetFromVec(players[i].position);
+			drawCircle(_canvas, adjustedPosition.x, adjustedPosition.y, globalVals.PLAYER_RADIUS, 8, playerColor);
 		}
 	};
 
-	this.drawBorder = function(width, height)
+	function drawBorder(width, height)
 	{
-		var adj = this.currentViewport.getViewOffset;
+		var adj = _currentViewport.getViewOffset;
 		var adjustedPosition;
 
-		debugLog("width",width);
-		debugLog("adj width",this.currentViewport.getViewOffset(width,0).x);
-		this._canvas.fillStyle = "#0000FF"
-		this._canvas.beginPath();
-		this._canvas.moveTo(adj(0,0).x, adj(0,0).y);
-		this._canvas.lineTo(adj(width,0).x, adj(width,0).y);
-		this._canvas.lineTo(adj(width,height).x, adj(width,height).y);
-		this._canvas.lineTo(adj(0,height).x, adj(0,height).y);
-		this._canvas.lineTo(adj(0,0).x, adj(0,0).y);
-		this._canvas.stroke();
+		_canvas.fillStyle = "#0000FF"
+		_canvas.beginPath();
+		_canvas.moveTo(adj(0,0).x, adj(0,0).y);
+		_canvas.lineTo(adj(width,0).x, adj(width,0).y);
+		_canvas.lineTo(adj(width,height).x, adj(width,height).y);
+		_canvas.lineTo(adj(0,height).x, adj(0,height).y);
+		_canvas.lineTo(adj(0,0).x, adj(0,0).y);
+		_canvas.stroke();
 	}
+
 
 
 	//function drawUI();
@@ -125,5 +132,23 @@ function Viewport()
 	{
 		return Vector.subtract(pos, position);
 	}
+
+	this.isInView = function(testPos)
+	{
+		//basic check, if object is within 100 tiles of view, just draw it. (assuming all objects < 100 radius)
+
+		var cullDist = 100;
+
+		if(testPos.x > position.x - cullDist && testPos.x < position.x + dimensions.x + cullDist
+		&& testPos.y > position.y - cullDist && testPos.y < position.y + dimensions.y + cullDist)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 
 }

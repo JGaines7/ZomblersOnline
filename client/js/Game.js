@@ -6,128 +6,172 @@
 
 function Game(canvas) { 
 
-  this.inputsCanvas = new InputsCanvas();
-  this.gameWorld = new GameWorld(3000,3000);
-  this.renderer = new Renderer(canvas);
+  var canvasUserInputs = new CanvasUserInputs();
+  var gameWorld = new GameWorld(3000,3000);
+  var renderer = new Renderer(canvas);
 
-  //some placeholder players
+  //some placeholder zombie spawning
   var tmpZombies = [];
-  for(var i = 0; i < 1000; i++)
+  for(var i = 0; i < 5000; i++)
   {
-    tmpZombies.push(new Zombie(new Vector(Math.random()*this.gameWorld.worldWidth,Math.random()*this.gameWorld.worldHeight), new Vector(Math.random(),Math.random()),0));
+    tmpZombies.push(new Zombie(new Vector(Math.random()*gameWorld.worldWidth,Math.random()*gameWorld.worldHeight), new Vector(Math.random(),Math.random()), 0));
   }
-  this.gameWorld.zombies = tmpZombies;
+  gameWorld.zombies = tmpZombies;
 
   //Test initial viewport and player
   var tmpPlayer = new Player(new Vector(300,300),new Vector(0,0),"Bantha");
-  this.gameWorld.players.push(tmpPlayer);
+  gameWorld.players.push(tmpPlayer);
+
   var viewPort = new Viewport();
-  console.log("screenWidth: " + screenWidth);
   viewPort.setDimensions(new Vector(screenWidth,screenHeight));
   viewPort.setCenterPosition(tmpPlayer.position);
-  this.renderer.currentViewport = viewPort;
 
+  //Set the viewport to render for
+  //We can theoretically render to multiple viewports
+  renderer.setViewport(viewPort);
 
-};
-
-Game.prototype.handleNetwork = function(socket) {
+  this.handleNetwork = function(socket) {
   console.log('Game connection process here');
   console.log(socket);
   // This is where you receive all socket messages
+  }
 
 
+  this.handleLogic = function() {
+    //console.log('Game is running');
+    // This is where you update your game logic
 
-}
+    handleUserInputs();
+    moveEntities();
+    checkCollisions();
+    updateCamera();
 
+    //network callbacks will have updated our gamestate
+    //update our gamestate based on the time delta
+    //updateSimulation(this.gameWorld);
+    //iterate through players
+    //update their velocity based on inputs
+    //update their positions based on velocity
+    //do collision checking
+    //
+  }
 
-Game.prototype.handleLogic = function() {
-  //console.log('Game is running');
-  // This is where you update your game logic
-  
-  this.handleUserInputs();
-  this.moveEntities();
-  this.checkCollisions();
-  this.updateCamera();
-
-
-
-
-
-  
-  //network callbacks will have updated our gamestate
-
-  //update our gamestate based on the time delta
-  //updateSimulation(this.gameWorld);
-  //iterate through players
-  //update their velocity based on inputs
-  //update their positions based on velocity
-  //do collision checking
-  //
-
-
-  //console.log("Gameloop. Curr keys: " + currentKeys);
-}
-
-Game.prototype.handleGraphics = function() {
+  this.handleGraphics = function() {
   // This is where you draw everything
-  this.renderer.render(this.gameWorld);
-}
-
-
-Game.prototype.handleUserInputs = function() {
-  //Some simple player movement logic (assumes you are player[0])
-  var dir = this.inputsCanvas.getMovementDirection();
-  this.gameWorld.players[0].velocity = Vector.multiply(dir, 5);
-}
-
-Game.prototype.moveEntities = function() {
- 
-  var zombies = this.gameWorld.zombies;
-  for(var i = 0; i < zombies.length; i++)
-  {
-    //update orientation based on target
-
-    //check map boundaries (and obstacles?)
-    //if collide, move up closest as possible to the collision and then 
-
-
-
-    //move based on current velocity
-    zombies[i].updatePosition(1);
+    renderer.render(gameWorld);
   }
 
-  var players = this.gameWorld.players;
-  for(i = 0; i < players.length; i++)
+  this.handleScreenResize = function()
   {
-
-    players[i].updatePosition(1);
+    viewPort.setDimensions(new Vector(screenWidth,screenHeight));
+    //viewPort.setCenterPosition(tmpPlayer.position);
   }
-}
 
-Game.prototype.checkCollisions = function() {
- 
-  // //For every zombie in game,
-  // //check if it is colliding with an obstacle.
-  // //if it is, move back to just before it collided
-  // var me = this;
+  //--------------- Private Functions --------------//
 
-  // var zombies = this.gameWorld.zombies;
-  // for(i = 0; i < zombies.length; i++)
-  // {
-  //   //for each wall, check if zombie is past the bound. if it is, move it back. i.e. left wall collision, x = 0 + radius.
-  //   this.checkWorldEdgeCollisions.call(this);
+  function handleUserInputs() {
+    //Some simple player movement logic (assumes you are player[0])
+    var dir = canvasUserInputs.getMovementDirection();
+    gameWorld.players[0].velocity = Vector.multiply(dir, 5);
+  }
 
-  // }
+  function moveEntities() {
+   
+    var zombies = gameWorld.zombies;
+    for(var i = 0; i < zombies.length; i++)
+    {
 
-  // function checkWorldEdgeCollisions(position, radius)
-  // {
-  //   if position
-  // }
+      //randomizeDirection  (This kinda stuff will have to either be in the zombie class or in some kind of helper file. Want to minimize code overhead in high count objects)
+      zombies[i].velocity = Vector.add(zombies[i].velocity, new Vector((Math.random() - 0.5) * 0.1,(Math.random() - 0.5) * 0.1));
+      //move based on current velocity
+      zombies[i].updatePosition(1);
+    }
 
- }
+    var players = gameWorld.players;
+    for(i = 0; i < players.length; i++)
+    {
 
-Game.prototype.updateCamera = function() {
+      players[i].updatePosition(1);
+    }
+  }
 
-  this.renderer.currentViewport.setCenterPosition(this.gameWorld.players[0].position);
+  function checkCollisions() {
+   
+    //For every zombie in game,
+    //check if it is colliding with an obstacle.
+    //if it is, move back to just before it collided
 
-}
+    
+    checkWorldEdgeCollisions(gameWorld.zombies, globalVals.ZOMBIE_RADIUS);
+    checkWorldEdgeCollisions(gameWorld.players, globalVals.PLAYER_RADIUS);
+    
+
+    function checkWorldEdgeCollisions(items, radius)
+    {
+      for(var i = 0; i < items.length; i++)
+      {
+        //for each wall, check if zombie is past the bound. if it is, move it back. i.e. left wall collision, x = 0 + radius.
+        var collidingWalls = checkWorldEdgeCollision(items[i].position, radius);
+        if(collidingWalls.left)
+        {
+          items[i].position.x = 0 + radius;
+          items[i].velocity.x = 0.2;
+        }
+        if(collidingWalls.right)
+        {
+          items[i].position.x = gameWorld.worldWidth - radius;
+          items[i].velocity.x = -0.2;
+        }
+        if(collidingWalls.top)
+        {
+          items[i].position.y = 0 + radius;
+          items[i].velocity.y = 0.2;
+        }
+        else if(collidingWalls.bottom)
+        {
+          items[i].position.y = gameWorld.worldHeight - radius;
+          items[i].velocity.y = -0.2;
+        }
+
+      }
+    }
+
+    function checkWorldEdgeCollision(position, radius)
+    {
+      //crappy box bounding check
+      var retVal = {}
+      retVal.left = false;
+      retVal.top = false;
+      retVal.right = false;
+      retVal.bottom = false;
+      //left wall
+      if(position.x - radius < 0)
+      {
+        retVal.left = true;
+      }
+      else if(position.x + radius > gameWorld.worldWidth)
+      {
+        retVal.right = true;
+      }
+      if(position.y - radius < 0)
+      {
+        retVal.top = true;
+      }
+      else if(position.y + radius > gameWorld.worldHeight)
+      {
+        retVal.bottom = true;
+      }
+      return retVal;
+    }
+
+  }
+
+  function updateCamera() {
+
+    viewPort.setCenterPosition(gameWorld.players[0].position);
+    //renderer.getCurrentViewPort.setCenterPosition(gameWorld.players[0].position);
+
+  }
+
+};
+
