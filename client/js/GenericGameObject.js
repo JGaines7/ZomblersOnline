@@ -2,6 +2,7 @@
 
 function GenericGameObject(position, velocity)
 {
+	"use strict"
 	this.position = position;
 	this.velocity = velocity;
 	//update object position based on current velocity and time delta

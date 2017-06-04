@@ -1,3 +1,4 @@
+"use strict"
 var playerName;
 var playerNameInput = document.getElementById('playerNameInput');
 var socket;
@@ -5,12 +6,20 @@ var socket;
 var screenWidth = window.innerWidth;
 var screenHeight = window.innerHeight;
 
+//performance debugging widget
+var stats = new Stats();
+stats.showPanel( 0 );
+stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild( stats.dom );
+
 //Set canvas size to window size and create variable to access it.
 var c = document.getElementById('cvs');
-canvas = c.getContext('2d');
+var canvas = c.getContext('2d');
 c.width = screenWidth; c.height = screenHeight;
 
 var KEY_ENTER = 13;
+
+var game;
 
 
 function startGame() {
@@ -33,7 +42,6 @@ function validNick() {
 
 
 window.onload = function() {
-    'use strict';
 
     var btn = document.getElementById('startButton'),
         nickErrorText = document.querySelector('#startMenu .input-error');
@@ -76,13 +84,16 @@ window.requestAnimFrame = (function(){
 
 //The client side game loop speed is determined by the requestAnimFrame rate.
 function animloop(){
+
     requestAnimFrame(animloop);
+    stats.begin(); //This is the watcher for the little performance window 
     gameLoop();
+    stats.end();
 }
 
 function gameLoop() {
-  game.handleLogic();
-  game.handleGraphics();
+    game.handleLogic();
+    game.handleGraphics();
 }
 
 window.addEventListener('resize', function() {

@@ -20,8 +20,6 @@ function InputsCanvas()
 
     this.canvas.addEventListener('keydown', function(event)
     {
-        //console.log("Keypress: " + event.keyCode);
-        selfs.keysDownArray[event.keyCode] = 1;
 
         if (globalVals.KEY_LEFT == event.keyCode)
         {
@@ -44,8 +42,6 @@ function InputsCanvas()
     }, false);
     this.canvas.addEventListener('keyup', function(event)
     {
-        //console.log("KeyUp: " + event.keyCode);
-        //selfs.keysDownArray[event.keyCode] = 1;
 
         if (globalVals.KEY_LEFT == event.keyCode)
         {
@@ -66,17 +62,6 @@ function InputsCanvas()
 
         
     }, false);
-
-
-    this.getKeysDown = function()
-    {
-    	return this.keysDownArray;
-    }
-
-    this.clearKeys = function()
-    {
-		this.keysDownArray = new Object();
-    }
 
     this.getMovementDirection = function()
     {

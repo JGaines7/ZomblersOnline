@@ -9,6 +9,7 @@
 
 
 function GameWorld(width, height) {
+	"use strict"
 	//TODO Could we pass in a GameWorldConfig on construction?
 	this.worldWidth = width;
 	this.worldHeight = height;

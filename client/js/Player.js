@@ -1,7 +1,8 @@
 function Player(position, velocity, name)
 {
-  GenericGameObject.call(this,position, velocity);
+	"use strict"
+	GenericGameObject.call(this,position, velocity);
  
-  this.name = name;
+	this.name = name;
   
 }

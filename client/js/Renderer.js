@@ -14,6 +14,8 @@ function Renderer(canvas)
 		this.drawBackground();
 		this.drawPlayers(gameWorldObject.players);
 		this.drawZombies(gameWorldObject.zombies);
+		this.drawBorder(gameWorldObject.worldWidth, gameWorldObject.worldHeight);
+		drawDebugValues(canvas);
 	}
 
 	//internal functions
@@ -27,9 +29,11 @@ function Renderer(canvas)
 	{
 		var zombieColor = '#FF0000';
 
+		var adjustedPosition;
 		for(i = 0; i < zombies.length; i++)
 		{
-			drawCircle(this._canvas, zombies[i].position.x - this.currentViewport.position.x, zombies[i].position.y - this.currentViewport.position.y, 15, 5, zombieColor);
+			adjustedPosition = this.currentViewport.getViewOffsetFromVec(zombies[i].position);
+			drawCircle(this._canvas, adjustedPosition.x, adjustedPosition.y, 15, 5, zombieColor);
 		}
 	};
 
@@ -37,11 +41,37 @@ function Renderer(canvas)
 	{
 		var playerColor = '#00FF00';
 
+		this._canvas.font = "30px Arial";
+
+		debugLog("Viewport X" , this.currentViewport.getPosition().x);
+		debugLog("Viewport Y" , this.currentViewport.getPosition().y);
+
+		var adjustedPosition;
 		for(i = 0; i < players.length; i++)
 		{
-			drawCircle(this._canvas, players[i].position.x - this.currentViewport.position.x, players[i].position.y - this.currentViewport.position.y, 15, 8, playerColor);
+			adjustedPosition = this.currentViewport.getViewOffsetFromVec(players[i].position);
+			drawCircle(this._canvas, adjustedPosition.x, adjustedPosition.y, 15, 8, playerColor);
 		}
 	};
+
+	this.drawBorder = function(width, height)
+	{
+		var adj = this.currentViewport.getViewOffset;
+		var adjustedPosition;
+
+		debugLog("width",width);
+		debugLog("adj width",this.currentViewport.getViewOffset(width,0).x);
+		this._canvas.fillStyle = "#0000FF"
+		this._canvas.beginPath();
+		this._canvas.moveTo(adj(0,0).x, adj(0,0).y);
+		this._canvas.lineTo(adj(width,0).x, adj(width,0).y);
+		this._canvas.lineTo(adj(width,height).x, adj(width,height).y);
+		this._canvas.lineTo(adj(0,height).x, adj(0,height).y);
+		this._canvas.lineTo(adj(0,0).x, adj(0,0).y);
+		this._canvas.stroke();
+	}
+
+
 	//function drawUI();
 
 
@@ -69,17 +99,31 @@ function Renderer(canvas)
 
 }
 
+
 function Viewport()
 {
 	//Position TopLeft
-	this.position = new Vector(0,0);
-	this.dimensions = new Vector(100,100);
+	var position = new Vector(0,0);
+	this.getPosition = function() {return position;}
+	this.setPosition = function(pos) { position = pos;}
 
-	this.setCenterPosition = function(position)
+	var dimensions = new Vector(0,0);
+	this.getDimensions = function(){return dimensions;}
+	this.setDimensions = function(dim) { dimensions = dim; console.log("Set dimesions to : " + dimensions.x);}
+	
+	this.setCenterPosition = function(pos)
 	{
 		//Need center position subtracted by half of the size
-		this.position = Vector.subtract(position, Vector.multiply(new Vector(this.dimensions.x, this.dimensions.y), 0.5))
+		position = Vector.subtract(pos, Vector.multiply(new Vector(dimensions.x, dimensions.y), 0.5))
 	}
 
+	this.getViewOffset = function(x,y)
+	{
+		return Vector.subtract(new Vector(x,y), position);
+	}
+	this.getViewOffsetFromVec = function(pos)
+	{
+		return Vector.subtract(pos, position);
+	}
 
 }
