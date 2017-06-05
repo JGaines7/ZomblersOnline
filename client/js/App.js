@@ -101,5 +101,8 @@ window.addEventListener('resize', function() {
     screenHeight = window.innerHeight;
     c.width = screenWidth;
     c.height = screenHeight;
-    game.handleScreenResize(screenWidth, screenHeight);
+    if(game !== undefined)
+    {
+        game.handleScreenResize(screenWidth, screenHeight);
+    }
 }, true);

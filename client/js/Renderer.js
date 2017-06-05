@@ -12,11 +12,25 @@ function Renderer(canvas)
 	this.setViewport = function(viewPort) { _currentViewport = viewPort;}
 	//TODO eventually we could have multiple layered canvases for different elements (Game, minimap, UI)
 
+
+	//Experiment with high performance drawing by blitting an offscreen canvas to the screen for repeated identical objects (zombies)
+	var zombieBlitCanvas = document.createElement('canvas');
+	var zombieBlitCanvasContext = zombieBlitCanvas.getContext('2d');
+	zombieBlitCanvas.height = globalVals.ZOMBIE_RADIUS * 2;
+	zombieBlitCanvas.width = globalVals.ZOMBIE_RADIUS * 2;
+	drawCircle(zombieBlitCanvasContext, globalVals.ZOMBIE_RADIUS, globalVals.ZOMBIE_RADIUS, globalVals.ZOMBIE_RADIUS, 45, '#FF0000');
+	var zombieImage = zombieBlitCanvasContext.getImageData(0,0,globalVals.ZOMBIE_RADIUS * 2,globalVals.ZOMBIE_RADIUS * 2); 
+            
+            
+
+
 	this.render = function(gameWorldObject)
 	{
 		drawBackground();
-		drawPlayers(gameWorldObject.players);
+		drawGrid(gameWorldObject.worldWidth, gameWorldObject.worldHeight);
+		
 		drawZombies(gameWorldObject.zombies);
+		drawPlayers(gameWorldObject.players);
 		drawBorder(gameWorldObject.worldWidth, gameWorldObject.worldHeight);
 		drawDebugValues(canvas);
 	}
@@ -30,19 +44,63 @@ function Renderer(canvas)
 		_canvas.fillRect(0, 0, screenWidth, screenHeight);
 	}
 
+	function drawGrid(worldWidth, worldHeight)
+	{
+		//simple grid to let player have frame of reference for movement
+		var gridSpacing = 100;
+		var gridColor = "#999999";
+		_canvas.strokeStyle = gridColor
+
+		//needs to align to world canvas, but only draw over viewport
+		var startX = -_currentViewport.getPosition().x % gridSpacing;
+		if(startX < _currentViewport.getViewOffset(0,0).x) { startX += Math.floor(_currentViewport.getViewOffset(0,0).x / gridSpacing) * gridSpacing;}
+		var stopX = Math.min( _currentViewport.getDimensions().x, _currentViewport.getViewOffset(worldWidth,0).x);
+
+		var startY = -_currentViewport.getPosition().y % gridSpacing;
+		if(startY < _currentViewport.getViewOffset(0,0).y) { startY+= Math.floor(_currentViewport.getViewOffset(0,0).y / gridSpacing) * gridSpacing;}
+		var stopY = Math.min( _currentViewport.getDimensions().y, _currentViewport.getViewOffset(0,worldHeight).y);
+
+		for(var i = startX; i < stopX; i += gridSpacing)
+		{
+			_canvas.beginPath();
+			_canvas.moveTo(i, Math.max(0, _currentViewport.getViewOffset(0,0).y)); //start at top of viewport or edge of world border
+			_canvas.lineTo(i, stopY );
+			_canvas.stroke();
+		}
+		
+		for(var i = startY; i < stopY; i += gridSpacing)
+		{
+			_canvas.beginPath();
+			_canvas.moveTo(Math.max(0, _currentViewport.getViewOffset(0,0).x),i); //start at top of viewport or edge of world border
+			_canvas.lineTo(stopX, i );
+			_canvas.stroke();
+		}
+
+
+	}
+
 	function drawZombies(zombies)
 	{
 		var zombieColor = '#FF0000';
 
 		var adjustedPosition;
+		var drawnZombies = 0;
 		for(var i = 0; i < zombies.length; i++)
 		{
+
 			adjustedPosition = _currentViewport.getViewOffsetFromVec(zombies[i].position);
+
 			if(_currentViewport.isInView(zombies[i].position))
 			{
-				drawCircle(_canvas, adjustedPosition.x, adjustedPosition.y, globalVals.ZOMBIE_RADIUS, 5, zombieColor);
+				drawnZombies++;
+				// 'efficient' way to draw zombies
+				_canvas.drawImage(zombieBlitCanvas, adjustedPosition.x - globalVals.ZOMBIE_RADIUS, adjustedPosition.y - globalVals.ZOMBIE_RADIUS);
+				
+				// Simple way to draw zombies
+				//drawCircle(_canvas, adjustedPosition.x, adjustedPosition.y, globalVals.ZOMBIE_RADIUS, 30, zombieColor);
 			}
 		}
+		debugLog("#zombiesDrawn", drawnZombies);
 	};
 
 	function drawPlayers(players)
@@ -58,7 +116,7 @@ function Renderer(canvas)
 		for(var i = 0; i < players.length; i++)
 		{
 			adjustedPosition = _currentViewport.getViewOffsetFromVec(players[i].position);
-			drawCircle(_canvas, adjustedPosition.x, adjustedPosition.y, globalVals.PLAYER_RADIUS, 8, playerColor);
+			drawCircle(_canvas, adjustedPosition.x, adjustedPosition.y, globalVals.PLAYER_RADIUS, 10, playerColor);
 		}
 	};
 
@@ -67,7 +125,7 @@ function Renderer(canvas)
 		var adj = _currentViewport.getViewOffset;
 		var adjustedPosition;
 
-		_canvas.fillStyle = "#0000FF"
+		_canvas.lineStyle = "#0000FF"
 		_canvas.beginPath();
 		_canvas.moveTo(adj(0,0).x, adj(0,0).y);
 		_canvas.lineTo(adj(width,0).x, adj(width,0).y);
@@ -107,48 +165,3 @@ function Renderer(canvas)
 }
 
 
-function Viewport()
-{
-	//Position TopLeft
-	var position = new Vector(0,0);
-	this.getPosition = function() {return position;}
-	this.setPosition = function(pos) { position = pos;}
-
-	var dimensions = new Vector(0,0);
-	this.getDimensions = function(){return dimensions;}
-	this.setDimensions = function(dim) { dimensions = dim; console.log("Set dimesions to : " + dimensions.x);}
-	
-	this.setCenterPosition = function(pos)
-	{
-		//Need center position subtracted by half of the size
-		position = Vector.subtract(pos, Vector.multiply(new Vector(dimensions.x, dimensions.y), 0.5))
-	}
-
-	this.getViewOffset = function(x,y)
-	{
-		return Vector.subtract(new Vector(x,y), position);
-	}
-	this.getViewOffsetFromVec = function(pos)
-	{
-		return Vector.subtract(pos, position);
-	}
-
-	this.isInView = function(testPos)
-	{
-		//basic check, if object is within 100 tiles of view, just draw it. (assuming all objects < 100 radius)
-
-		var cullDist = 100;
-
-		if(testPos.x > position.x - cullDist && testPos.x < position.x + dimensions.x + cullDist
-		&& testPos.y > position.y - cullDist && testPos.y < position.y + dimensions.y + cullDist)
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-
-}

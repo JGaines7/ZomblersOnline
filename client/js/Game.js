@@ -7,14 +7,14 @@
 function Game(canvas) { 
 
   var canvasUserInputs = new CanvasUserInputs();
-  var gameWorld = new GameWorld(3000,3000);
+  var gameWorld = new GameWorld(8000,8000);
   var renderer = new Renderer(canvas);
 
   //some placeholder zombie spawning
   var tmpZombies = [];
-  for(var i = 0; i < 5000; i++)
+  for(var i = 0; i < 10000; i++)
   {
-    tmpZombies.push(new Zombie(new Vector(Math.random()*gameWorld.worldWidth,Math.random()*gameWorld.worldHeight), new Vector(Math.random(),Math.random()), 0));
+    tmpZombies.push(new Zombie(new Vector(Math.random()*gameWorld.worldWidth,Math.random()*gameWorld.worldHeight), new Vector(Math.random()-.5,Math.random()-.5), 0));
   }
   gameWorld.zombies = tmpZombies;
 
@@ -72,7 +72,8 @@ function Game(canvas) {
   function handleUserInputs() {
     //Some simple player movement logic (assumes you are player[0])
     var dir = canvasUserInputs.getMovementDirection();
-    gameWorld.players[0].velocity = Vector.multiply(dir, 5);
+    gameWorld.players[0].velocity = Vector.multiply(dir, globalVals.PLAYER_MAX_SPEED);
+
   }
 
   function moveEntities() {
@@ -82,7 +83,12 @@ function Game(canvas) {
     {
 
       //randomizeDirection  (This kinda stuff will have to either be in the zombie class or in some kind of helper file. Want to minimize code overhead in high count objects)
-      zombies[i].velocity = Vector.add(zombies[i].velocity, new Vector((Math.random() - 0.5) * 0.1,(Math.random() - 0.5) * 0.1));
+      zombies[i].velocity = Vector.add(zombies[i].velocity, new Vector((Math.random() - 0.5) * 0.2,(Math.random() - 0.5) * 0.2));
+      if (zombies[i].velocity.length() > globalVals.ZOMBIE_MAX_SPEED)
+      {
+        zombies[i].velocity.normalize();
+        zombies[i].velocity.multiply(globalVals.ZOMBIE_MAX_SPEED);
+      }
       //move based on current velocity
       zombies[i].updatePosition(1);
     }
